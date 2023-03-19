@@ -18,11 +18,6 @@ export class TodosItem extends BaseEntity {
   description: string;
 
   @Column({
-    length: 36,
-  })
-  user_id: string;
-
-  @Column({
     type: 'tinyint',
     scale: 1,
     default: '0',
