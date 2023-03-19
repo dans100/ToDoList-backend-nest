@@ -11,9 +11,11 @@ import { CreateTaskDto } from '../dto/create-task.dto';
 @Injectable()
 export class TodosService {
   async createTask(task: CreateTaskDto): Promise<TodosItem> {
+    const { description, deadline } = task;
+
     const newTask = new TodosItem();
-    newTask.description = task.description;
-    newTask.deadline = task.deadline;
+    newTask.description = description;
+    newTask.deadline = deadline;
 
     await newTask.save();
     return newTask;
