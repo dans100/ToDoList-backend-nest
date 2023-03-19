@@ -4,3 +4,7 @@ export interface UserEntity {
   password: string;
   email: string;
 }
+
+export type RegisterUserResponse = {
+  message: string;
+};
