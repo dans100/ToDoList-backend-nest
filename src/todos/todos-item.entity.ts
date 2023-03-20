@@ -25,6 +25,7 @@ export class TodosItem extends BaseEntity {
   isCompleted: number;
 
   @Column({
+    type: 'date',
     default: null,
   })
   deadline: Date;
