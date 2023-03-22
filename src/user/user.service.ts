@@ -17,19 +17,19 @@ export class UserService {
 
     if (existUser) {
       throw new HttpException(`User ${username} is already`, 409);
+    } else {
+      const newUser = await new User();
+
+      const hashedPassword = await hash(password, 10);
+      newUser.email = email;
+      newUser.password = hashedPassword;
+      newUser.username = username;
+
+      await newUser.save();
+
+      return {
+        message: `User ${username} has been registered`,
+      };
     }
-
-    const newUser = await new User();
-
-    const hashedPassword = await hash(password, 10);
-    newUser.email = email;
-    newUser.password = hashedPassword;
-    newUser.username = username;
-
-    await newUser.save();
-
-    return {
-      message: `User ${username} has been registered`,
-    };
   }
 }
