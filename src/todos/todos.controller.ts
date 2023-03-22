@@ -27,11 +27,6 @@ export class TodosController {
     return this.todoService.getTodosList(name ?? '');
   }
 
-  @Get('/:id')
-  getOne(@Param('id') id: string): Promise<GetOneTaskResponse> {
-    return this.todoService.getOne(id);
-  }
-
   @Delete('/')
   removeAllTask(): Promise<void> {
     return this.todoService.removeAllTask();
