@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TodosItem } from './todos-item.entity';
 import { DeleteResult, Like } from 'typeorm';
 import {
@@ -7,16 +7,29 @@ import {
   GetTodosListResponse,
 } from '../interfaces/task';
 import { CreateTaskDto } from '../dto/create-task.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class TodosService {
-  async createTask(task: CreateTaskDto): Promise<TodosItem> {
-    const { description, deadline } = task;
+  constructor(@Inject(UserService) private userService: UserService) {}
 
+  async createTask(task: CreateTaskDto): Promise<TodosItem> {
+    const { description, deadline, userId } = task;
+    const user = await this.userService.getUser(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (!description || description.length > 55 || description.length < 3) {
+      throw new Error(
+        'Description cannot be shorter than 3 characters and later than 55 characters',
+      );
+    }
     const newTask = new TodosItem();
     newTask.description = description;
     newTask.deadline = deadline;
-
+    newTask.user = user;
     await newTask.save();
     return newTask;
   }
@@ -26,6 +39,7 @@ export class TodosService {
       where: {
         description: Like(`%${name}%`),
       },
+      relations: ['user'],
     });
   }
 
