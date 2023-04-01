@@ -3,67 +3,75 @@ import { TodosItem } from './todos-item.entity';
 import { DeleteResult, Like } from 'typeorm';
 import {
   EditTaskEntity,
-  GetOneTaskResponse,
   GetTodosListResponse,
+  TaskEntity,
 } from '../interfaces/task';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UserService } from '../user/user.service';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class TodosService {
+  filter(task: TodosItem): TaskEntity {
+    const { id, description, isCompleted, deadline } = task;
+    return { id, description, isCompleted, deadline };
+  }
+
   constructor(@Inject(UserService) private userService: UserService) {}
 
-  async createTask(task: CreateTaskDto): Promise<TodosItem> {
-    const { description, deadline, userId } = task;
-    const user = await this.userService.getUser(userId);
+  async createTask(task: CreateTaskDto, user: User): Promise<TaskEntity> {
+    const { description, deadline } = task;
 
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    if (!description || description.length > 55 || description.length < 3) {
-      throw new Error(
-        'Description cannot be shorter than 3 characters and later than 55 characters',
-      );
-    }
     const newTask = new TodosItem();
     newTask.description = description;
     newTask.deadline = deadline;
     newTask.user = user;
     await newTask.save();
-    return newTask;
+    return this.filter(newTask);
   }
 
-  async getTodosList(name: string): Promise<GetTodosListResponse> {
-    return await TodosItem.find({
-      where: {
-        description: Like(`%${name}%`),
-      },
-      relations: ['user'],
+  async getTodosList(name: string, user: User): Promise<GetTodosListResponse> {
+    return (
+      await TodosItem.find({
+        where: {
+          description: Like(`%${name}%`),
+          user,
+        },
+      })
+    ).map(this.filter);
+  }
+
+  async removeTask(id: string, user): Promise<DeleteResult> {
+    return await TodosItem.delete({
+      id,
+      user,
     });
   }
 
-  async getOne(id: string): Promise<GetOneTaskResponse> {
-    return await TodosItem.findOneOrFail(id);
+  async removeAllTask(user: User): Promise<DeleteResult> {
+    return await TodosItem.delete({
+      user,
+    });
   }
 
-  async removeTask(id: string): Promise<DeleteResult> {
-    return await TodosItem.delete(id);
-  }
-
-  async removeAllTask(): Promise<void> {
-    return await TodosItem.clear();
-  }
-
-  async removeCompleteTask(): Promise<DeleteResult> {
+  async removeCompleteTask(user): Promise<DeleteResult> {
     return await TodosItem.delete({
       isCompleted: 1,
+      user,
     });
   }
 
-  async update(id: string, description: EditTaskEntity): Promise<void> {
+  async update(id: string, description: EditTaskEntity): Promise<TaskEntity> {
     const task = await TodosItem.findOne(id);
     task.description = description.editTaskValue;
     await task.save();
+    return this.filter(task);
+  }
+
+  async updateStatus(id: string, isCompleted: number): Promise<TaskEntity> {
+    const task = await TodosItem.findOne(id);
+    task.isCompleted = isCompleted;
+    await task.save();
+    return this.filter(task);
   }
 }
