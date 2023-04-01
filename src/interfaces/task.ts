@@ -6,7 +6,6 @@ export interface TaskEntity {
 }
 
 export type GetTodosListResponse = TaskEntity[];
-export type GetOneTaskResponse = TaskEntity;
 
 export interface EditTaskEntity {
   editTaskValue: string;
