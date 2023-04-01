@@ -17,10 +17,14 @@ export class User extends BaseEntity {
   })
   username: string;
 
+  @Column()
+  pwdHash: string;
+
   @Column({
-    length: 60,
+    nullable: true,
+    default: null,
   })
-  password: string;
+  currentTokenId: string | null;
 
   @Column({
     length: 256,
