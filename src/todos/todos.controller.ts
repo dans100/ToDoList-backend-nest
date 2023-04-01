@@ -7,45 +7,65 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import {
-  EditTaskEntity,
-  GetOneTaskResponse,
-  GetTodosListResponse,
-} from '../interfaces/task';
+import { EditTaskEntity, GetTodosListResponse } from '../interfaces/task';
 import { TodosService } from './todos.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { DeleteResult } from 'typeorm';
-import { TodosItem } from './todos-item.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { UserObj } from '../decorators/user-obj.decorator';
+import { User } from '../user/user.entity';
 
 @Controller('/list')
 export class TodosController {
   constructor(@Inject(TodosService) private todoService: TodosService) {}
 
   @Get('/:name?')
-  getTodosList(@Param('name') name: string): Promise<GetTodosListResponse> {
-    return this.todoService.getTodosList(name ?? '');
+  @UseGuards(AuthGuard('jwt'))
+  getTodosList(
+    @Param('name') name: string,
+    @UserObj() user: User,
+  ): Promise<GetTodosListResponse> {
+    return this.todoService.getTodosList(name ?? '', user);
   }
 
   @Delete('/')
-  removeAllTask(): Promise<void> {
-    return this.todoService.removeAllTask();
+  @UseGuards(AuthGuard('jwt'))
+  removeAllTask(@UserObj() user: User) {
+    return this.todoService.removeAllTask(user);
   }
 
   @Delete('/:id')
-  removeTask(@Param('id') id: string): Promise<DeleteResult> {
+  @UseGuards(AuthGuard('jwt'))
+  removeTask(
+    @Param('id') id: string,
+    @UserObj() user: User,
+  ): Promise<DeleteResult> {
     return id === 'complete'
-      ? this.todoService.removeCompleteTask()
-      : this.todoService.removeTask(id);
+      ? this.todoService.removeCompleteTask(user)
+      : this.todoService.removeTask(id, user);
   }
 
   @Post('/')
-  createTask(@Body() createTaskDto: CreateTaskDto): Promise<TodosItem> {
-    return this.todoService.createTask(createTaskDto);
+  @UseGuards(AuthGuard('jwt'))
+  createTask(@Body() createTaskDto: CreateTaskDto, @UserObj() user: User) {
+    console.log(user);
+    return this.todoService.createTask(createTaskDto, user);
   }
 
   @Patch('/:id')
+  @UseGuards(AuthGuard('jwt'))
   updateTask(@Body() description: EditTaskEntity, @Param('id') id: string) {
     return this.todoService.update(id, description);
+  }
+
+  @Patch('/:id/status')
+  @UseGuards(AuthGuard('jwt'))
+  updateStatus(
+    @Body() { isCompleted }: { isCompleted: number },
+    @Param('id') id: string,
+  ) {
+    return this.todoService.updateStatus(id, isCompleted);
   }
 }
