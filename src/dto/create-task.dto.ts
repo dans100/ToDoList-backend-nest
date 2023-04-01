@@ -7,7 +7,4 @@ export class CreateTaskDto {
 
   @IsDate()
   deadline: Date | null;
-
-  @IsString()
-  userId: string;
 }
