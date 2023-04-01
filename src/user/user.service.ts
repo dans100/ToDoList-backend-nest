@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpException,
   Inject,
   Injectable,
@@ -7,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { User } from './user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { hash } from 'bcrypt';
 import { RegisterUserResponse } from '../interfaces/user';
 import { MailService } from '../mail/mail.service';
 import { registerUserInfoEmailTemplate } from '../templates/mail/register-user-info';
+import { hashPwd } from '../utils/hash-pwd';
 
 @Injectable()
 export class UserService {
@@ -25,7 +24,7 @@ export class UserService {
   }
 
   async register(user: CreateUserDto): Promise<RegisterUserResponse> {
-    const { password, username, email } = user;
+    const { pwd, username, email } = user;
 
     const existUser = await User.findOne({ email });
 
@@ -35,17 +34,16 @@ export class UserService {
 
     const newUser = await new User();
 
-    const hashedPassword = await hash(password, 10);
     newUser.email = email;
-    newUser.password = hashedPassword;
+    newUser.pwdHash = hashPwd(pwd);
     newUser.username = username;
 
     await newUser.save();
-    await this.mailService.sendMail(
-      email,
-      'Registration Confirmation',
-      registerUserInfoEmailTemplate(username),
-    );
+    // await this.mailService.sendMail(
+    //   email,
+    //   'Registration Confirmation',
+    //   registerUserInfoEmailTemplate(username),
+    // );
 
     return {
       message: `User ${username} has been registered`,
