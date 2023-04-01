@@ -13,7 +13,7 @@ async function bootstrap() {
   // app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
-      disableErrorMessages: false,
+      disableErrorMessages: true,
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
@@ -24,7 +24,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
     methods: 'GET,POST,DELETE,PATCH',
   });
