@@ -8,6 +8,10 @@
 
 <p>Login without creating an account: e-mail: admin@admin.com password: admin</p>
 
+<p>The application is hosted on a pure express.js server, as it was not possible to host it on Nest.js on networkmanager.pl.
+Locally, everything works the same. 
+Here's the link to the application's GitHub repository written in express.js: https://github.com/dans100/ToDoList-backend.git</p>
+
 <h2>Project Screenshots:</h2>
 
 <img src="https://raw.githubusercontent.com/dans100/ToDoList-frontend/main/public/login.png" alt="project-screenshot" width="800" height="385/">
